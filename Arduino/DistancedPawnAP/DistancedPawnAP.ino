@@ -15,6 +15,7 @@
 #include <Streaming.h>
 
 #include "server_params.h"
+#include "chess_moves.h"
 
 //! #undef below to stop serial debugging info (speedup the system and reduces the memory)
 #define _DEBUG
@@ -27,6 +28,9 @@ int keyIndex = 0;                 // your network key Index number (needed only 
 int status = WL_IDLE_STATUS;
 //! Create the http server on custom port
 WiFiServer server(SERVER_PORT);
+
+//! Create the board object
+Board chessBoard;
 
 /** 
  *  Initialization function.
@@ -83,6 +87,9 @@ void setup() {
 
   // you're connected now, so print out the status
   printWiFiStatus();
+
+  chessBoard.setBoard();
+  chessBoard.drawBoard(BOARD_SERIAL);
 }
 
 //! Main appplication function. Focused on the server activity

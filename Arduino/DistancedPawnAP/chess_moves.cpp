@@ -1,125 +1,179 @@
+/**
+ * @file chess_moves.h
+ * @brief header of the classes that manages the moves and the board
+ */
+
 #include "chess_moves.h"
 
-
-Square::Square()
-{
+// --------------------------------------------------------------------- Square class
+Square::Square() {
   piece = EMPTY;
   color = NONE;
 }
 
-void Square::setSpace(Square* space)
-{
-  color = space->getColor();
+void Square::setSpace(Square* space) {
+  color = space->getSquareColor();
   piece = space->getPiece();
 }
 
-void Square::setEmpty()
-{
+void Square::setEmpty() {
   color = NONE;
   piece = EMPTY;
 }
 
-Piece Square::getPiece()
-{
+ChessPiece Square::getPiece() {
   return piece;
 }
 
-Color Square::getColor()
-{
+ChessColor Square::getSquareColor() {
   return color;
 }
 
-void Square::setPieceAndColor(Piece p, Color c)
-{
+void Square::setPieceAndColor(ChessPiece p, ChessColor c) {
   piece = p;
   color = c;
 
 }
 
+// --------------------------------------------------------------------- Borad class
+void Board::drawBoard(int t) {
+  switch(t) {
+    // Board output to serial console
+    case BOARD_SERIAL:
+      drawSerialBoard();
+    break;
+    
+    // Board output to remote http client
+    case BOARD_HTML:
+    
+    break;
 
-void Board::printBoard() {
-//  using namespace std;
-//  cout << "   y: 0  1  2  3  4  5  6  7 " << endl << "x:" << endl;
-  for (int i = 0; i < 8; i++)
-  {
-//    cout << " " << i << "   ";
-    for (int j = 0; j < 8; j++)
-    {
-      Piece p = square[i][j].getPiece();
-      Color c = square[i][j].getColor();
+    // Board output to the controller display
+    case BOARD_DISPLAY:
+    
+    break;
+  }
+}
+
+void Board::drawSerialBoard() {
+  // Loop by row and columns
+  for (int i = 0; i < 8; i++) {
+    Serial << " " << i << "   ";
+    for (int j = 0; j < 8; j++) {
+      // Set the ChessPieces in the starting position and
+      // draw the squares
+      ChessPiece p = square[i][j].getPiece();
+      ChessColor c = square[i][j].getSquareColor();
 
       switch (p)
       {
-      case KING: (c == WHITE) ? cout << " K " : cout << " k ";
+      case KING: (c == WHITE) ? Serial << " K " : Serial << " k ";
         break;
-      case QUEEN: (c == WHITE) ? cout << " Q " : cout << " q ";
+      case QUEEN: (c == WHITE) ? Serial << " Q " : Serial << " q ";
         break;
-      case BISHOP:(c == WHITE) ? cout << " B " : cout << " b ";
+      case BISHOP:(c == WHITE) ? Serial << " B " : Serial << " b ";
         break;
-      case KNIGHT:(c == WHITE) ? cout << " H " : cout << " h ";
+      case KNIGHT:(c == WHITE) ? Serial << " H " : Serial << " h ";
         break;
-      case ROOK: (c == WHITE) ? cout << " R " : cout << " r ";
+      case ROOK: (c == WHITE) ? Serial << " R " : Serial << " r ";
         break;
-      case PAWN: (c == WHITE) ? cout << " P " : cout << " p ";
+      case PAWN: (c == WHITE) ? Serial << " P " : Serial << " p ";
         break;
-      case EMPTY: cout << " " << "\21" << " ";
+      case EMPTY: Serial << " " << "\21" << " ";
         break;
-      default: cout << "XXX";
+      default: Serial << "XXX";
         break;
       }
 
     }
-    cout << endl;
+    Serial << endl;
   }
+}
 
+void Board::drawHtmlBoard() {
+//  cout << "   y: 0  1  2  3  4  5  6  7 " << endl << "x:" << endl;
+//  for (int i = 0; i < 8; i++)
+//  {
+//    cout << " " << i << "   ";
+//    for (int j = 0; j < 8; j++)
+//    {
+//      ChessPiece p = square[i][j].getPiece();
+//      ChessColor c = square[i][j].getSquareColor();
+//
+//      switch (p)
+//      {
+//      case KING: (c == WHITE) ? cout << " K " : cout << " k ";
+//        break;
+//      case QUEEN: (c == WHITE) ? cout << " Q " : cout << " q ";
+//        break;
+//      case BISHOP:(c == WHITE) ? cout << " B " : cout << " b ";
+//        break;
+//      case KNIGHT:(c == WHITE) ? cout << " H " : cout << " h ";
+//        break;
+//      case ROOK: (c == WHITE) ? cout << " R " : cout << " r ";
+//        break;
+//      case PAWN: (c == WHITE) ? cout << " P " : cout << " p ";
+//        break;
+//      case EMPTY: cout << " " << "\21" << " ";
+//        break;
+//      default: cout << "XXX";
+//        break;
+//      }
+//
+//    }
+//    cout << endl;
+//  }
+}
+
+void Board::drawDisplayBoard() {
+  // Not yet available.
 }
 
 bool Board::doMove() {
-  using namespace std;
-  string move;
-  int x1, x2, y1, y2;
-  bool stop = false;
-  while (!stop)
-  {
-    (turn == WHITE) ? cout << "White's turn" << endl : cout << "Black's turn" << endl;
-    cout << "Type in your move as a single four character string. Use x-coordinates first in each pair." << endl;
-    cin >> move;
-    x1 = move[0] - 48;
-    y1 = move[1] - 48;
-    x2 = move[2] - 48;
-    y2 = move[3] - 48;
-    if (getSquare(x1, y1)->getColor() == turn)
-    {
-
-
-      if (makeMove(x1, y1, x2, y2) == false)
-      {
-        cout << "Invalid move, try again." << endl;
-      }
-      else
-        stop = true;
-    }
-    else
-      cout << "That's not your piece. Try again." << endl;
-  }
-  if (getSquare(x2, y2)->getPiece() == KING)
-    if (getSquare(x1, y1)->getColor() == WHITE)
-    {
-//      cout << "WHITE WINS" << endl;
-      return false;
-    }
-    else
-
-    {
-//      cout << "BLACK WINS" << endl;
-      return false;
-    }
-
-
-  if (turn == BLACK)
-    turn = WHITE;
-  else
-    turn = BLACK;
+//  string move;
+//  int x1, x2, y1, y2;
+//  bool stop = false;
+//  while (!stop)
+//  {
+//    (turn == WHITE) ? cout << "White's turn" << endl : cout << "Black's turn" << endl;
+//    cout << "Type in your move as a single four character string. Use x-coordinates first in each pair." << endl;
+//    cin >> move;
+//    x1 = move[0] - 48;
+//    y1 = move[1] - 48;
+//    x2 = move[2] - 48;
+//    y2 = move[3] - 48;
+//    if (getSquare(x1, y1)->getSquareColor() == turn)
+//    {
+//
+//
+//      if (makeMove(x1, y1, x2, y2) == false)
+//      {
+//        cout << "Invalid move, try again." << endl;
+//      }
+//      else
+//        stop = true;
+//    }
+//    else
+//      cout << "That's not your ChessPiece. Try again." << endl;
+//  }
+//  if (getSquare(x2, y2)->getPiece() == KING)
+//    if (getSquare(x1, y1)->getSquareColor() == WHITE)
+//    {
+////      cout << "WHITE WINS" << endl;
+//      return false;
+//    }
+//    else
+//
+//    {
+////      cout << "BLACK WINS" << endl;
+//      return false;
+//    }
+//
+//
+//  if (turn == BLACK)
+//    turn = WHITE;
+//  else
+//    turn = BLACK;
 
   return true;
 
@@ -168,15 +222,14 @@ void Board::setBoard()
 
 bool Board::playGame()
 {
-  system("cls");
-  printBoard();
-  return doMove();
-
+//  system("cls");
+//  printBoard();
+//  return doMove();
 }
 
 bool Board::moveKing(Square* thisKing, Square* thatSpace) {
   //off board inputs should be handled elsewhere (before this)
-  //squares with same color should be handled elsewhere (before this)
+  //squares with same ChessColor should be handled elsewhere (before this)
   if (abs(thatSpace->getX() - thisKing->getX()) == 1)
     if (abs(thatSpace->getY() - thisKing->getY()) == 1)
     {
@@ -187,9 +240,10 @@ bool Board::moveKing(Square* thisKing, Square* thatSpace) {
     else return false;
   else return false;
 }
+
 bool Board::moveQueen(Square* thisQueen, Square* thatSpace) { //there might be problems with numbers of brackets
                              //off board inputs should be handled elsewhere (before this)
-                             //squares with same color should be handled elsewhere (before this)
+                             //squares with same ChessColor should be handled elsewhere (before this)
 
   int queenX = thisQueen->getX();
   int queenY = thisQueen->getY();
@@ -209,7 +263,7 @@ bool Board::moveQueen(Square* thisQueen, Square* thatSpace) { //there might be p
       for (int i = queenY + yIncrement; i != thatY; i += yIncrement)
       {
 
-        if (square[thatX][i].getColor() != NONE)
+        if (square[thatX][i].getSquareColor() != NONE)
           return false;
 
       }
@@ -221,7 +275,7 @@ bool Board::moveQueen(Square* thisQueen, Square* thatSpace) { //there might be p
         xIncrement = (thatX - queenX) / (abs(thatX - queenX));
         for (int i = queenX + xIncrement; i != thatX; i += xIncrement)
         {
-          if (square[i][thatY].getColor() != NONE)
+          if (square[i][thatY].getSquareColor() != NONE)
             return false;
         }
       }
@@ -234,7 +288,7 @@ bool Board::moveQueen(Square* thisQueen, Square* thatSpace) { //there might be p
           for (int i = 1; i < abs(queenX - thatX); i++)
           {
 //            std::cout << "It got here somehow";
-            if (square[queenX + xIncrement*i][queenY + yIncrement*i].getColor() != NONE)
+            if (square[queenX + xIncrement*i][queenY + yIncrement*i].getSquareColor() != NONE)
               return false;
 
           }
@@ -273,7 +327,7 @@ bool Board::moveBishop(Square* thisBishop, Square* thatSpace) { //there might be
     for (int i = 1; i < abs(bishopX - thatX); i++)
     {
 //      std::cout << "It got here somehow";
-      if (square[bishopX + xIncrement*i][bishopY + yIncrement*i].getColor() != NONE)
+      if (square[bishopX + xIncrement*i][bishopY + yIncrement*i].getSquareColor() != NONE)
         return false;
 
     }
@@ -295,7 +349,7 @@ bool Board::moveBishop(Square* thisBishop, Square* thatSpace) { //there might be
 bool Board::moveKnight(Square* thisKnight, Square* thatSpace)
 {
   //off board inputs should be handled elsewhere (before this)
-  //squares with same color should be handled elsewhere (before this)
+  //squares with same ChessColor should be handled elsewhere (before this)
   int knightX = thisKnight->getX();
   int knightY = thisKnight->getY();
   int thatX = thatSpace->getX();
@@ -316,7 +370,7 @@ bool Board::moveKnight(Square* thisKnight, Square* thatSpace)
 bool Board::moveRook(Square* thisRook, Square* thatSpace)
 {
   //off board inputs should be handled elsewhere (before this)
-  //squares with same color should be handled elsewhere (before this)
+  //squares with same ChessColor should be handled elsewhere (before this)
   int rookX = thisRook->getX();
   int rookY = thisRook->getY();
   int thatX = thatSpace->getX();
@@ -331,7 +385,7 @@ bool Board::moveRook(Square* thisRook, Square* thatSpace)
       for (int i = rookY + yIncrement; i != thatY; i += yIncrement)
       {
 
-        if (square[thatX][i].getColor() != NONE)
+        if (square[thatX][i].getSquareColor() != NONE)
           return false;
 
       }
@@ -343,7 +397,7 @@ bool Board::moveRook(Square* thisRook, Square* thatSpace)
         int xIncrement = (thatX - rookX) / (abs(thatX - rookX));
         for (int i = rookX + xIncrement; i != thatX; i += xIncrement)
         {
-          if (square[i][thatY].getColor() != NONE)
+          if (square[i][thatY].getSquareColor() != NONE)
             return false;
         }
       }
@@ -365,8 +419,7 @@ bool Board::moveRook(Square* thisRook, Square* thatSpace)
 
 bool Board::movePawn(Square* thisPawn, Square* thatSpace) {
   //off board inputs should be handled elsewhere (before this)
-  //squares with same color should be handled elsewhere (before this)
-  using namespace std;
+  //squares with same ChessColor should be handled elsewhere (before this)
   bool invalid = false;
   int pawnX = thisPawn->getX();
   int pawnY = thisPawn->getY();
@@ -374,17 +427,17 @@ bool Board::movePawn(Square* thisPawn, Square* thatSpace) {
   int thatY = thatSpace->getY();
 
 
-  if (thisPawn->getColor() == WHITE)
+  if (thisPawn->getSquareColor() == WHITE)
   {
 
-    if (pawnX == thatX && thatY == pawnY + 1 && thatSpace->getColor() == NONE)
+    if (pawnX == thatX && thatY == pawnY + 1 && thatSpace->getSquareColor() == NONE)
     {
       thatSpace->setSpace(thisPawn);
       thisPawn->setEmpty();
       return true;
     }
     else
-      if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY + 1 == thatY  && thatSpace->getColor() == BLACK)
+      if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY + 1 == thatY  && thatSpace->getSquareColor() == BLACK)
       {
         thatSpace->setSpace(thisPawn);
         thisPawn->setEmpty();
@@ -394,16 +447,16 @@ bool Board::movePawn(Square* thisPawn, Square* thatSpace) {
         return false;
   }
   else
-    if (thisPawn->getColor() == BLACK)
+    if (thisPawn->getSquareColor() == BLACK)
     {
-      if (pawnX == thatX && thatY == pawnY - 1 && thatSpace->getColor() == NONE)
+      if (pawnX == thatX && thatY == pawnY - 1 && thatSpace->getSquareColor() == NONE)
       {
         thatSpace->setSpace(thisPawn);
         thisPawn->setEmpty();
         return true;
       }
       else
-        if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY - 1 == thatY  && thatSpace->getColor() == WHITE)
+        if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY - 1 == thatY  && thatSpace->getSquareColor() == WHITE)
         {
           thatSpace->setSpace(thisPawn);
           thisPawn->setEmpty();
@@ -417,7 +470,6 @@ bool Board::movePawn(Square* thisPawn, Square* thatSpace) {
 }
 bool Board::makeMove(int x1, int y1, int x2, int y2) {
   //Checking for turns will be done previous to this
-  using namespace std;
   if (x1 < 0 || x1>7 || y1 < 0 || y1>7 || x2 < 0 || x2>7 || y2 < 0 || y2>8)
   {
 //    std::cout << "One of your inputs was our of bounds" << std::endl;
@@ -426,9 +478,9 @@ bool Board::makeMove(int x1, int y1, int x2, int y2) {
   Square* src = getSquare(x1, y1);
   Square* dest = getSquare(x2, y2);
 
-  if (src->getColor() == dest->getColor() && dest->getColor() != NONE)
+  if (src->getSquareColor() == dest->getSquareColor() && dest->getSquareColor() != NONE)
   {
-//    std::cout << "Invalid move: cannot land on your own piece" << std::endl;
+//    std::cout << "Invalid move: cannot land on your own ChessPiece" << std::endl;
     return false;
   }
 
@@ -446,7 +498,7 @@ bool Board::makeMove(int x1, int y1, int x2, int y2) {
     break;
   case PAWN: return movePawn(src, dest);
     break;
-  case EMPTY: // std::cout << "You do not have a piece there" << std::endl;  return false;
+  case EMPTY: // std::cout << "You do not have a ChessPiece there" << std::endl;  return false;
     break;
   default: // std::cerr << "Something went wrong in the switch statement in makeMove()" << std::endl;
     break;

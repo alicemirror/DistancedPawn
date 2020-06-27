@@ -16,3 +16,6 @@
 
 //! Definition of the default AP IP address
 inline int IP(int x) { int ip[] = {10, 0, 0, 1}; return ip[x]; }
+
+// Get commands
+#define GET_OPPONEN
