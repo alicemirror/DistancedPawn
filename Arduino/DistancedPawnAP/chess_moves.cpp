@@ -12,7 +12,7 @@ Square::Square() {
 }
 
 void Square::setSpace(Square* space) {
-  color = space->getSquareColor();
+  color = space->getPieceColor();
   piece = space->getPiece();
 }
 
@@ -25,7 +25,7 @@ ChessPiece Square::getPiece() {
   return piece;
 }
 
-ChessColor Square::getSquareColor() {
+ChessColor Square::getPieceColor() {
   return color;
 }
 
@@ -56,77 +56,53 @@ void Board::drawBoard(int t) {
 }
 
 void Board::drawSerialBoard() {
+  // Add an empty line
+  Serial << endl << "      = Game Status =" << endl << endl;
   // Loop by row and columns
-  for (int i = 0; i < 8; i++) {
-    Serial << " " << i << "   ";
+  for (int i = 7; i >= 0; i--) {
+    Serial << " " << i + 1 << "| ";
     for (int j = 0; j < 8; j++) {
       // Set the ChessPieces in the starting position and
       // draw the squares
-      ChessPiece p = square[i][j].getPiece();
-      ChessColor c = square[i][j].getSquareColor();
-
+      ChessPiece p = square[j][i].getPiece();
+      ChessColor c = square[j][i].getPieceColor();
       switch (p)
       {
-      case KING: (c == WHITE) ? Serial << " K " : Serial << " k ";
+      case KING: (c == WHITE) ? Serial << "[K]" : Serial << "[k]";
         break;
-      case QUEEN: (c == WHITE) ? Serial << " Q " : Serial << " q ";
+      case QUEEN: (c == WHITE) ? Serial << "]Q]" : Serial << "[q]";
         break;
-      case BISHOP:(c == WHITE) ? Serial << " B " : Serial << " b ";
+      case BISHOP:(c == WHITE) ? Serial << "[B]" : Serial << "[b]";
         break;
-      case KNIGHT:(c == WHITE) ? Serial << " H " : Serial << " h ";
+      case KNIGHT:(c == WHITE) ? Serial << "[H]" : Serial << "[h]";
         break;
-      case ROOK: (c == WHITE) ? Serial << " R " : Serial << " r ";
+      case ROOK: (c == WHITE) ? Serial << "[R]" : Serial << "[r]";
         break;
-      case PAWN: (c == WHITE) ? Serial << " P " : Serial << " p ";
+      case PAWN: (c == WHITE) ? Serial << "[P]" : Serial << "[p]";
         break;
-      case EMPTY: Serial << " " << "\21" << " ";
+      case EMPTY: Serial << "[ ]";
         break;
-      default: Serial << "XXX";
+      default: Serial << "???"; // Should never happen
         break;
-      }
-
-    }
+      } // Case piece
+    } // print row
     Serial << endl;
-  }
+  } // print col
+  // Last row
+  Serial << "    ________________________" << endl;
+  Serial << "     A  B  C  D  E  F  G  H" << endl;
 }
 
 void Board::drawHtmlBoard() {
-//  cout << "   y: 0  1  2  3  4  5  6  7 " << endl << "x:" << endl;
-//  for (int i = 0; i < 8; i++)
-//  {
-//    cout << " " << i << "   ";
-//    for (int j = 0; j < 8; j++)
-//    {
-//      ChessPiece p = square[i][j].getPiece();
-//      ChessColor c = square[i][j].getSquareColor();
-//
-//      switch (p)
-//      {
-//      case KING: (c == WHITE) ? cout << " K " : cout << " k ";
-//        break;
-//      case QUEEN: (c == WHITE) ? cout << " Q " : cout << " q ";
-//        break;
-//      case BISHOP:(c == WHITE) ? cout << " B " : cout << " b ";
-//        break;
-//      case KNIGHT:(c == WHITE) ? cout << " H " : cout << " h ";
-//        break;
-//      case ROOK: (c == WHITE) ? cout << " R " : cout << " r ";
-//        break;
-//      case PAWN: (c == WHITE) ? cout << " P " : cout << " p ";
-//        break;
-//      case EMPTY: cout << " " << "\21" << " ";
-//        break;
-//      default: cout << "XXX";
-//        break;
-//      }
-//
-//    }
-//    cout << endl;
-//  }
+
+  // Not yet implemented
+
 }
 
 void Board::drawDisplayBoard() {
+
   // Not yet available.
+
 }
 
 bool Board::doMove() {
@@ -142,7 +118,7 @@ bool Board::doMove() {
 //    y1 = move[1] - 48;
 //    x2 = move[2] - 48;
 //    y2 = move[3] - 48;
-//    if (getSquare(x1, y1)->getSquareColor() == turn)
+//    if (getSquare(x1, y1)->getPieceColor() == turn)
 //    {
 //
 //
@@ -157,7 +133,7 @@ bool Board::doMove() {
 //      cout << "That's not your ChessPiece. Try again." << endl;
 //  }
 //  if (getSquare(x2, y2)->getPiece() == KING)
-//    if (getSquare(x1, y1)->getSquareColor() == WHITE)
+//    if (getSquare(x1, y1)->getPieceColor() == WHITE)
 //    {
 ////      cout << "WHITE WINS" << endl;
 //      return false;
@@ -179,8 +155,8 @@ bool Board::doMove() {
 
 }
 
-void Board::setBoard()
-{
+void Board::setBoard() {
+  // Place the first row pieces in their position for white side
   square[0][0].setPieceAndColor(ROOK, WHITE);
   square[1][0].setPieceAndColor(KNIGHT, WHITE);
   square[2][0].setPieceAndColor(BISHOP, WHITE);
@@ -190,6 +166,7 @@ void Board::setBoard()
   square[6][0].setPieceAndColor(KNIGHT, WHITE);
   square[7][0].setPieceAndColor(ROOK, WHITE);
 
+  // Place the first row pieces in their position for black side
   square[0][7].setPieceAndColor(ROOK, BLACK);
   square[1][7].setPieceAndColor(KNIGHT, BLACK);
   square[2][7].setPieceAndColor(BISHOP, BLACK);
@@ -199,21 +176,23 @@ void Board::setBoard()
   square[6][7].setPieceAndColor(KNIGHT, BLACK);
   square[7][7].setPieceAndColor(ROOK, BLACK);
 
-  for (int i = 0; i < 8; i++)
-  {
+  // Place the Pawn rows
+  for (int i = 0; i < 8; i++) {
     square[i][1].setPieceAndColor(PAWN, WHITE);
     square[i][6].setPieceAndColor(PAWN, BLACK);
 
   }
-  for (int i = 2; i < 6; i++)
-  {
-    for (int j = 0; j < 8; j++)
-      square[j][i].setPieceAndColor(EMPTY, NONE);
 
+  // Create the empty squares
+  for (int i = 2; i < 6; i++) {
+    for (int j = 0; j < 8; j++) {
+      square[j][i].setPieceAndColor(EMPTY, NONE);
+    }
   }
+
+  
   for (int i = 0; i < 8; i++)
-    for (int j = 0; j < 8; j++)
-    {
+    for (int j = 0; j < 8; j++) {
       square[i][j].setX(i);
       square[i][j].setY(j);
     }
@@ -227,281 +206,267 @@ bool Board::playGame()
 //  return doMove();
 }
 
-bool Board::moveKing(Square* thisKing, Square* thatSpace) {
-  //off board inputs should be handled elsewhere (before this)
-  //squares with same ChessColor should be handled elsewhere (before this)
-  if (abs(thatSpace->getX() - thisKing->getX()) == 1)
-    if (abs(thatSpace->getY() - thisKing->getY()) == 1)
-    {
+
+int Board::moveKing(Square* thisKing, Square* thatSpace) {
+  
+  if (abs(thatSpace->getX() - thisKing->getX()) == 1) {
+    if (abs(thatSpace->getY() - thisKing->getY()) == 1) {
       thatSpace->setSpace(thisKing);
       thisKing->setEmpty();
       return true;
-    }
-    else return false;
-  else return false;
+    } // Correct move
+    else {
+      return false;
+    } // Wrong move
+  } // Check if dest is valid
+  else {
+    return false;
+  } // Wrong move
 }
 
-bool Board::moveQueen(Square* thisQueen, Square* thatSpace) { //there might be problems with numbers of brackets
-                             //off board inputs should be handled elsewhere (before this)
-                             //squares with same ChessColor should be handled elsewhere (before this)
+int Board::moveQueen(Square* thisQueen, Square* thatSpace) { 
 
   int queenX = thisQueen->getX();
   int queenY = thisQueen->getY();
   int thatX = thatSpace->getX();
   int thatY = thatSpace->getY();
-//  std::cout << "this";
   int yIncrement;
   int xIncrement;
 
+  //! Moves validation flag
   bool invalid = false;
-  if (queenX != thatX || queenY != thatY)
-  {
 
-    if (queenX == thatX)
-    {
+  if (queenX != thatX || queenY != thatY) {
+    if (queenX == thatX) {
       yIncrement = (thatY - queenY) / (abs(thatY - queenY));
-      for (int i = queenY + yIncrement; i != thatY; i += yIncrement)
-      {
-
-        if (square[thatX][i].getSquareColor() != NONE)
-          return false;
-
-      }
-    }
-    else
-      if (queenY == thatY)
-      {
-
-        xIncrement = (thatX - queenX) / (abs(thatX - queenX));
-        for (int i = queenX + xIncrement; i != thatX; i += xIncrement)
-        {
-          if (square[i][thatY].getSquareColor() != NONE)
-            return false;
+      
+      for (int i = queenY + yIncrement; i != thatY; i += yIncrement) {
+        if (square[thatX][i].getPieceColor() != NONE) {
+          return MOVE_QUEEN_INVALID;
         }
       }
-      else
-        if (abs(queenX - thatX) == abs(queenY - thatY))
-        {
+    }
+    else {
+      if (queenY == thatY) {
+        xIncrement = (thatX - queenX) / (abs(thatX - queenX));
+        for (int i = queenX + xIncrement; i != thatX; i += xIncrement) {
+          if (square[i][thatY].getPieceColor() != NONE) {
+            return MOVE_QUEEN_INVALID;
+          }
+        }
+      }
+      else {
+        if (abs(queenX - thatX) == abs(queenY - thatY)) {
           xIncrement = (thatX - queenX) / (abs(thatX - queenX));
           yIncrement = (thatY - queenY) / (abs(thatY - queenY));
 
-          for (int i = 1; i < abs(queenX - thatX); i++)
-          {
-//            std::cout << "It got here somehow";
-            if (square[queenX + xIncrement*i][queenY + yIncrement*i].getSquareColor() != NONE)
-              return false;
+          for (int i = 1; i < abs(queenX - thatX); i++) {
+            if (square[queenX + xIncrement*i][queenY + yIncrement*i].getPieceColor() != NONE) {
+              return MOVE_QUEEN_INVALID;
+            } // Wrong move
+          } // Loop on destination position
+        } // Check the absolute range of moves (poisitive and negative directions)
+        else {
+          return MOVE_QUEEN_INVALID;
+        } // Wrong move
+      }
+    }
+  } // Check if destination square is acceptable
 
-          }
-        }
-        else
-          return false;
-    //if()
-  }
-
-
-
-  if (invalid == false)
-  {
+  if (invalid == false) {
     thatSpace->setSpace(thisQueen);
     thisQueen->setEmpty();
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+    return MOVE_OK;
+  } // Correct move
+  else {
+    return MOVE_QUEEN_INVALID;
+  } // Wrong move
 }
 
-bool Board::moveBishop(Square* thisBishop, Square* thatSpace) { //there might be problems with number of brackets
+int Board::moveBishop(Square* thisBishop, Square* thatSpace) { //there might be problems with number of brackets
   int bishopX = thisBishop->getX();
   int bishopY = thisBishop->getY();
   int thatX = thatSpace->getX();
   int thatY = thatSpace->getY();
+
+  //! Moves validation flag
   bool invalid = false;
+  
   Square *s;
-  if (abs(bishopX - thatX) == abs(bishopY - thatY))
-  {
+  if (abs(bishopX - thatX) == abs(bishopY - thatY)) {
     int xIncrement = (thatX - bishopX) / (abs(thatX - bishopX));
     int yIncrement = (thatY - bishopY) / (abs(thatY - bishopY));
 
-    for (int i = 1; i < abs(bishopX - thatX); i++)
-    {
-//      std::cout << "It got here somehow";
-      if (square[bishopX + xIncrement*i][bishopY + yIncrement*i].getSquareColor() != NONE)
-        return false;
-
+    for (int i = 1; i < abs(bishopX - thatX); i++) {
+      if (square[bishopX + xIncrement*i][bishopY + yIncrement*i].getPieceColor() != NONE) {
+        return MOVE_BISHOP_INVALID;
+      } // Wrong move
     }
-  }
-  else
-    return false;
+  } 
+  else {
+    return MOVE_BISHOP_INVALID;
+  } // Wrong move
 
-  if (invalid == false)
-  {
+  if (invalid == false) {
     thatSpace->setSpace(thisBishop);
     thisBishop->setEmpty();
-    return true;
-  }
-  else
-  {
-    return false;
+    return MOVE_OK;
+  } // Correct move (the only positive exit point)
+  else {
+    return MOVE_BISHOP_INVALID;
   }
 }
-bool Board::moveKnight(Square* thisKnight, Square* thatSpace)
-{
-  //off board inputs should be handled elsewhere (before this)
-  //squares with same ChessColor should be handled elsewhere (before this)
+
+int Board::moveKnight(Square* thisKnight, Square* thatSpace) {
   int knightX = thisKnight->getX();
   int knightY = thisKnight->getY();
   int thatX = thatSpace->getX();
   int thatY = thatSpace->getY();
 
-  if ((abs(knightX - thatX) == 2 && abs(knightY - thatY) == 1) || (abs(knightX - thatX) == 1 && abs(knightY - thatY) == 2))
-  {
+  // Check for Knight valid moves
+  if ((abs(knightX - thatX) == 2 && abs(knightY - thatY) == 1) || (abs(knightX - thatX) == 1 && abs(knightY - thatY) == 2)) {
     thatSpace->setSpace(thisKnight);
     thisKnight->setEmpty();
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+    return MOVE_OK;
+  } // Move valid
+  else {
+    return MOVE_KNIGHT_INVALID;
+  } // Wrong move
 }
 
-bool Board::moveRook(Square* thisRook, Square* thatSpace)
-{
-  //off board inputs should be handled elsewhere (before this)
-  //squares with same ChessColor should be handled elsewhere (before this)
+int Board::moveRook(Square* thisRook, Square* thatSpace) {
   int rookX = thisRook->getX();
   int rookY = thisRook->getY();
   int thatX = thatSpace->getX();
   int thatY = thatSpace->getY();
+  //! Move validation flag
   bool invalid = false;
-  if (rookX != thatX || rookY != thatY)
-  {
 
-    if (rookX == thatX)
-    {
+  // Check for the rook move rules
+  if (rookX != thatX || rookY != thatY) {
+    if (rookX == thatX) {
       int yIncrement = (thatY - rookY) / (abs(thatY - rookY));
-      for (int i = rookY + yIncrement; i != thatY; i += yIncrement)
-      {
-
-        if (square[thatX][i].getSquareColor() != NONE)
-          return false;
-
-      }
-    }
-    else
-      if (rookY == thatY)
-      {
-
+      for (int i = rookY + yIncrement; i != thatY; i += yIncrement) {
+        if (square[thatX][i].getPieceColor() != NONE) {
+          return MOVE_ROOK_INVALID;
+        } // Wrong move
+      } // Loop on the possible landing squares
+    } // Check on moves x-based
+    else {
+      if (rookY == thatY) {
         int xIncrement = (thatX - rookX) / (abs(thatX - rookX));
-        for (int i = rookX + xIncrement; i != thatX; i += xIncrement)
-        {
-          if (square[i][thatY].getSquareColor() != NONE)
-            return false;
-        }
-      }
-      else
-        return false;
+        for (int i = rookX + xIncrement; i != thatX; i += xIncrement) {
+          if (square[i][thatY].getPieceColor() != NONE) {
+            return MOVE_ROOK_INVALID;
+          } // Wrong move
+        } // Loop on pthe possible landing squares
+      } // Check on moves y-based
+      else {
+        return MOVE_ROOK_INVALID;
+      } // Wrong move
+    }
   }
-  if (invalid == false)
-  {
+  if (invalid == false) {
     thatSpace->setSpace(thisRook);
     thisRook->setEmpty();
-    return true;
-  }
-  else
-  {//Return some erorr or something. Probably return false;
-//    std::cout << "That is an invalid move for rook";
-    return false;
-  }
+    return MOVE_OK;
+  } // All move controls passed
+  else {
+    return MOVE_ROOK_INVALID;
+  } // Wrong move for Rook
 }
 
-bool Board::movePawn(Square* thisPawn, Square* thatSpace) {
-  //off board inputs should be handled elsewhere (before this)
-  //squares with same ChessColor should be handled elsewhere (before this)
-  bool invalid = false;
+int Board::movePawn(Square* thisPawn, Square* thatSpace) {
   int pawnX = thisPawn->getX();
   int pawnY = thisPawn->getY();
   int thatX = thatSpace->getX();
   int thatY = thatSpace->getY();
 
-
-  if (thisPawn->getSquareColor() == WHITE)
-  {
-
-    if (pawnX == thatX && thatY == pawnY + 1 && thatSpace->getSquareColor() == NONE)
-    {
+  if (thisPawn->getPieceColor() == WHITE) {
+    if (pawnX == thatX && thatY == pawnY + 1 && thatSpace->getPieceColor() == NONE) {
       thatSpace->setSpace(thisPawn);
       thisPawn->setEmpty();
-      return true;
-    }
-    else
-      if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY + 1 == thatY  && thatSpace->getSquareColor() == BLACK)
-      {
+      return MOVE_OK;
+    } // Correct move
+    else {
+      if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY + 1 == thatY  && thatSpace->getPieceColor() == BLACK) {
         thatSpace->setSpace(thisPawn);
         thisPawn->setEmpty();
-        return true;
-      }
-      else
-        return false;
-  }
-  else
-    if (thisPawn->getSquareColor() == BLACK)
-    {
-      if (pawnX == thatX && thatY == pawnY - 1 && thatSpace->getSquareColor() == NONE)
-      {
+        return MOVE_OK;
+      } // Eat piece is valid
+      else {
+        return MOVE_PAWN_INVALID;
+      } // Invalid move
+    } // Pawn eats 
+  } // Case white player
+  else {
+    if (thisPawn->getPieceColor() == BLACK) {
+      if (pawnX == thatX && thatY == pawnY - 1 && thatSpace->getPieceColor() == NONE) {
         thatSpace->setSpace(thisPawn);
         thisPawn->setEmpty();
-        return true;
-      }
-      else
-        if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY - 1 == thatY  && thatSpace->getSquareColor() == WHITE)
-        {
+      return MOVE_OK;
+      } // Correct move
+      else {
+        if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY - 1 == thatY  && thatSpace->getPieceColor() == WHITE) {
           thatSpace->setSpace(thisPawn);
           thisPawn->setEmpty();
-          return true;
+          return MOVE_OK;
         }
-        else
-          return false;
-    }
-    else
-      return false;
+        else {
+          return MOVE_PAWN_INVALID;
+        }
+      }
+    } // Case black player
+    else {
+      return MOVE_PAWN_INVALID;
+    } // Invalid move
+  } // Case black player
 }
-bool Board::makeMove(int x1, int y1, int x2, int y2) {
-  //Checking for turns will be done previous to this
-  if (x1 < 0 || x1>7 || y1 < 0 || y1>7 || x2 < 0 || x2>7 || y2 < 0 || y2>8)
-  {
-//    std::cout << "One of your inputs was our of bounds" << std::endl;
-    return false;
+
+int Board::makeMove(int x1, int y1, int x2, int y2) {
+  // Validate from...to coordinates
+  if (x1 < 0 || x1 > 7 || y1 < 0 || y1 > 7 || x2 < 0 || x2 > 7 || y2 < 0 || y2 > 8) {
+    return MOVE_OUT_OF_BOUND;
   }
+
+  //! Square object pointer to the from coordinates
   Square* src = getSquare(x1, y1);
+  //! Square object point to the dest coordinates
   Square* dest = getSquare(x2, y2);
 
-  if (src->getSquareColor() == dest->getSquareColor() && dest->getSquareColor() != NONE)
-  {
-//    std::cout << "Invalid move: cannot land on your own ChessPiece" << std::endl;
-    return false;
+  // Check if there is a piece of the same color on the destination coordinates
+  if (src->getPieceColor() == dest->getPieceColor() && dest->getPieceColor() != NONE) {
+    return MOVE_SAME_COLOR_PIECE;
   }
 
-  switch (src->getPiece())
-  {
-  case KING: return moveKing(src, dest);
-    break;
-  case QUEEN: return moveQueen(src, dest);
-    break;
-  case BISHOP: return moveBishop(src, dest);
-    break;
-  case KNIGHT: return moveKnight(src, dest);
-    break;
-  case ROOK: return moveRook(src, dest);
-    break;
-  case PAWN: return movePawn(src, dest);
-    break;
-  case EMPTY: // std::cout << "You do not have a ChessPiece there" << std::endl;  return false;
-    break;
-  default: // std::cerr << "Something went wrong in the switch statement in makeMove()" << std::endl;
-    break;
+  // Check for valid move accordingly to the game rules of the moved piece
+  // found on the source coordinates.
+  switch (src->getPiece()) {
+    case KING: 
+      return moveKing(src, dest);
+      break;
+    case QUEEN: 
+      return moveQueen(src, dest);
+      break;
+    case BISHOP: 
+      return moveBishop(src, dest);
+      break;
+    case KNIGHT: 
+      return moveKnight(src, dest);
+      break;
+    case ROOK: 
+      return moveRook(src, dest);
+      break;
+    case PAWN: 
+      return movePawn(src, dest);
+      break;
+    case EMPTY: 
+      return MOVE_SOURCE_EMPTY;
+      break;
+    default:
+      return MOVE_GENERIC_ERROR;
+      break;
   }
-  return false;
+  // None of the validation cases has passed, the move is not valid
+  return MOVE_GENERIC_ERROR;
 }

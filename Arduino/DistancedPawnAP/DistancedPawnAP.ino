@@ -18,7 +18,7 @@
 #include "chess_moves.h"
 
 //! #undef below to stop serial debugging info (speedup the system and reduces the memory)
-#define _DEBUG
+#undef _DEBUG
 
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;        // your network password (use for WPA, or use as key for WEP)
@@ -86,7 +86,9 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);               // GET /H turns the LED on
 
   // you're connected now, so print out the status
+#ifdef _DEBUG
   printWiFiStatus();
+#endif
 
   chessBoard.setBoard();
   chessBoard.drawBoard(BOARD_SERIAL);
@@ -107,8 +109,8 @@ void loop() {
       // a device has disconnected from the AP, and we are back in listening mode
       Serial.println("Device disconnected from AP");
     }
-  }
 #endif
+  }
   
   WiFiClient client = server.available();   // listen for incoming clients
 

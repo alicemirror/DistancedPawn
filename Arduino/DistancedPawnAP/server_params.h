@@ -17,5 +17,7 @@
 //! Definition of the default AP IP address
 inline int IP(int x) { int ip[] = {10, 0, 0, 1}; return ip[x]; }
 
-// Get commands
-#define GET_OPPONEN
+// HTTP GET commands
+#define HTTPGET_NEWGAME     "/N"
+#define HTTPGET_MOVE        "/M"
+#define HTTPGET_STATUS      "/S"
