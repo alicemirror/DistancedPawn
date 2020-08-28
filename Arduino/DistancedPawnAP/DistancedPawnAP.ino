@@ -7,7 +7,7 @@
   implementing a web client.
 
   \author Enrico Miglino <balearidcynamics@gmail.com>
-  \version 1.0 build 5
+  \version 1.0 build 6
  */
 
 #include <SPI.h>
