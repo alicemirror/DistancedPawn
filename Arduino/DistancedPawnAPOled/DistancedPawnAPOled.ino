@@ -1,29 +1,43 @@
 /**
-  \file OLED_FontsTestedPawn.ino
-  \brief A full test of all the fonts available on the OLED Display
-  
-  This software is developed to run on the Arduino MKR1010, so some parameters
-  may refer exclusively to this board.
-  The OLED display used is a 128x64 pixels model connected to I2C
+  \file DistancedPawn.ino
+  \brief Main application for "The Distanced Pawn" project, AP module
 
-  \note The OLED display includes some scrolling text methods:
-
-  startscrollright(0x00, 0x0F): scroll text from left to right\n
-  startscrollleft(0x00, 0x0F): scroll text from right to left\n
-  startscrolldiagright(0x00, 0x07): scroll text from left bottom\n
-                                    corner to right upper corner\n
-  startscrolldiagleft(0x00, 0x07): scroll text from right bottom corner\n
-                                   to left upper corner
+  This software is developed to run on the Arduino MKR1010 connected to 
+  a second similad micro controller.
+  The AP implement a web server to whch the second chess player 
+  (the remote opponent) connects implementing a web client.
+  Starting from build 8 I have integrated the OLED I2C display
 
   \author Enrico Miglino <balearidcynamics@gmail.com>
-  \version 1.0 build 1
+  \version 1.0 build 8
  */
 
+#include <SPI.h>
+#include <WiFiNINA.h>
 #include <Streaming.h>
-#include "oledsettings.h"
 
-// Undef below to remove the debug Serial1 notifications
+#include "oledsettings.h"
+#include "server_params.h"
+#include "chess_moves.h"
+
+#define PIN_R 3
+#define PIN_G 4
+#define PIN_B 5
+
+//! #undef below to stop serial debugging info (speedup the system and reduces the memory)
 #define _DEBUG
+
+char ssid[] = SECRET_SSID;        // your network SSID (name)
+char pass[] = SECRET_PASS;        // your network password (use for WPA, or use as key for WEP)
+int keyIndex = 0;                 // your network key Index number (needed only for WEP)
+
+//! AP server status
+int status = WL_IDLE_STATUS;
+//! Create the http server on custom port
+WiFiServer server(SERVER_PORT);
+
+//! Create the board object
+Board chessBoard;
 
 //! Dispaly instance
 //! Display size is not parametrized as it is specifically related
@@ -42,21 +56,85 @@ float testCount = 0;
  */
 void sDebug(String msg) {
 #ifdef _DEBUG
-//  Serial1 << "debug: " << msg << endl;
   Serial1.print("debug: ");
   Serial1.println(msg);
 #endif
 }
 
-/**
- * Initialization function
- */
+/** 
+ *  Initialization function.
+ *  
+ *  In the setup funciton it is created the AP and assigned the default IP
+ *  address, as well as the server creation. Only in debug mode (serial active)
+ *  the setting operations are logged to the terminal.
+ *  
+ *  \note To manage the status when the AP can't be initializaed or there is a connection
+ *  issue, the builting LED goes not to On
+*/
 void setup() {
+
+  pinMode(PIN_R, OUTPUT);
+  pinMode(PIN_G, OUTPUT);
+  pinMode(PIN_B, OUTPUT);
+
+  digitalWrite(PIN_R,HIGH);
+  digitalWrite(PIN_G,LOW);
+  digitalWrite(PIN_B,LOW);
+  delay(2000);
+  digitalWrite(PIN_R,LOW);
+  digitalWrite(PIN_G,HIGH);
+  digitalWrite(PIN_B,LOW);
+  delay(2000);
+  digitalWrite(PIN_R,LOW);
+  digitalWrite(PIN_G,LOW);
+  digitalWrite(PIN_B,HIGH);
+  delay(2000);
+  digitalWrite(PIN_R,LOW);
+  digitalWrite(PIN_G,LOW);
+  digitalWrite(PIN_B,LOW);
+
+  pinMode(LED_BUILTIN, OUTPUT);
+
 #ifdef _DEBUG
   Serial1.begin(115200);
-  sDebug("Started");
 #endif
-  sDebug("128x64 OLED fonts test");
+  sDebug("Access Point Web Server");
+
+  // Check the firmware version and notify if it should be updated
+  String fv = WiFi.firmwareVersion();
+  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
+    sDebug("Please upgrade the firmware");
+  }
+
+   WiFi.config(IPAddress(IP(0), IP(1), IP(2), IP(3)) );
+
+  // print the network name (SSID);
+  sDebug("Creating access point named: ");
+  sDebug(ssid);
+
+  // Create open network. Change this line if you want to create an WEP network:
+  status = WiFi.beginAP(ssid, pass);
+
+  if (status != WL_AP_LISTENING) {
+    sDebug("Creating access point failed");
+    // don't continue
+    while (true);
+  }
+
+  // wait for connection
+  delay(AP_DELAY);
+
+  // start the web server on the assigned port
+  server.begin();
+
+  //! System is ready
+  digitalWrite(LED_BUILTIN, HIGH);               // GET /H turns the LED on
+
+  printWiFiStatus();
+
+  chessBoard.setBoard();
+  chessBoard.drawBoard(BOARD_SERIAL);
+
   // Initialize the display
   oled.begin(SSD1306_SWITCHCAPVCC, OLED_I2C);
   sDebug("OLED initialized");
@@ -66,50 +144,91 @@ void setup() {
   oled.display();
   sDebug("Buffer cleared. Starting Fonts test");
 
+  // Show title scrolling on the display
+  initDisplay(&oled); 
+  textFont(SANS_BOLD, 9, &oled);
+  showText("The", 45, 15, COL_WHITE, &oled); 
+  showText("Distanced", 20, 35, COL_WHITE, &oled); 
+  showText("Pawn", 35, 55, COL_WHITE, &oled); 
 }
 
-// --- Defines to enable test blocks
-#undef _SCROLL
-#define _FONT
-
-//! Main application loop
+//! Main appplication function. Focused on the server activity
 void loop() {
-  char cnt[20];
+  // compare the previous status to the current status
+  if (status != WiFi.status()) {
+    // it has changed update the variable
+    status = WiFi.status();
+
+    if (status == WL_AP_CONNECTED) {
+      // a device has connected to the AP
+      sDebug("Device connected to AP");
+    } else {
+      // a device has disconnected from the AP, and we are back in listening mode
+      sDebug("Device disconnected from AP");
+    }
+  }
   
-  testCount += PI;
+  WiFiClient client = server.available();   // listen for incoming clients
 
-#ifdef _SCROLL
-  sprintf(cnt, "Var %3.5f", testCount);
-  // Scroll sequence
-  initDisplay(&oled); 
-  showText(cnt, 0, 0, COL_WHITE, &oled); 
-  textScroll(OLED_SCROLL_LEFT_RIGHT, &oled); delay(2000);
-  textScroll(OLED_SCROLL_RIGHT_LEFT, &oled); delay(2000);
-  textScroll(OLED_SCROLL_DIAG_RIGHT, &oled); delay(2000);
-  textScroll(OLED_SCROLL_DIAG_LEFT, &oled); delay(2000);
-  textScroll(OLED_SCROLL_STOP, &oled); delay(2000);
-#endif
+  if (client) {                             // if you get a client,
+    Serial1.println("new client");           // print a message out the serial port
+    String currentLine = "";                // make a String to hold incoming data from the client
+    while (client.connected()) {            // loop while the client's connected
+      if (client.available()) {             // if there's bytes to read from the client,
+        char c = client.read();             // read a byte, then
+        Serial1.write(c);                    // print it out the serial monitor
+        if (c == '\n') {                    // if the byte is a newline character
 
-#ifdef _FONT
-  sprintf(cnt, ">%3.0f", testCount);
-  initDisplay(&oled);
-  textFont(SERIF, 9, &oled);
-  showText(cnt, 20, 15, COL_WHITE, &oled); 
-  textFont(SERIF_BOLD, 12, &oled);
-  showText(cnt, 20, 40, COL_WHITE, &oled); 
-  textFont(SERIF_ITALIC, 9, &oled);
-  showText(cnt, 20, 62, COL_WHITE, &oled); 
-  delay(3000);
-  initDisplay(&oled);
-  textFont(SERIF_BOLD, 18, &oled);
-  showText(cnt, 20, 40, COL_WHITE, &oled); 
-  delay(3000);
-  initDisplay(&oled);
-  textFont(SERIF_BOLD, 24, &oled);
-  showText(cnt, 20, 40, COL_WHITE, &oled); 
-  textScroll(OLED_SCROLL_RIGHT_LEFT, &oled);
-  delay(3000);
-  textScroll(OLED_SCROLL_STOP, &oled); delay(2000);
+          // if the current line is blank, you got two newline characters in a row.
+          // that's the end of the client HTTP request, so send a response:
+          if (currentLine.length() == 0) {
+            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+            // and a content-type so the client knows what's coming, then a blank line:
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println();
+
+            // the content of the HTTP response follows the header:
+            client.print("Click <a href=\"/H\">here</a> turn the LED on<br>");
+            client.print("Click <a href=\"/L\">here</a> turn the LED off<br>");
+
+            // The HTTP response ends with another blank line:
+            client.println();
+            // break out of the while loop:
+            break;
+          }
+          else {      // if you got a newline, then clear currentLine:
+            currentLine = "";
+          }
+        }
+        else if (c != '\r') {    // if you got anything else but a carriage return character,
+          currentLine += c;      // add it to the end of the currentLine
+        }
+
+        // Check to see if the client request was "GET /H" or "GET /L":
+//        if (currentLine.endsWith("GET /H")) {
+//          digitalWrite(led, HIGH);               // GET /H turns the LED on
+//        }
+//        if (currentLine.endsWith("GET /L")) {
+//          digitalWrite(led, LOW);                // GET /L turns the LED off
+//        }
+      }
+    }
+    // close the connection:
+    client.stop();
+    sDebug("client disconnected");
+  }
+}
+
+//! Debug onlly
+void printWiFiStatus() {
+#ifdef _DEBUG
+  // print the SSID of the network you're attached to:
+  Serial1 << "SSID: " << WiFi.SSID() << endl;
+  IPAddress ip = WiFi.localIP();
+  Serial1 << "IP Address: " << ip << endl;
+  Serial1 <<"To see this page in action, open a browser to http://" <<
+          ip << endl;
 #endif
 }
 
@@ -487,6 +606,5 @@ int textFont(int fontName, int fontSize, Adafruit_SSD1306* disp) {
     }
     #endif
     break;
-  }
-  
+  } 
 }

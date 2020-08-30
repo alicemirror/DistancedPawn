@@ -1,6 +1,6 @@
 /**
- * @file chess_moves.h
- * @brief header of the classes that manages the moves and the board
+ * @file chess_moves.cpp
+ * @brief Class that manages the moves and the board
  */
 
 #include "chess_moves.h"
@@ -8,7 +8,7 @@
 // ----------------------------------------------------- Square class
 Square::Square() {
   piece = EMPTY;
-  color = NONE;
+  color = PLAY_NONE;
 }
 
 void Square::setSpace(Square* space) {
@@ -17,7 +17,7 @@ void Square::setSpace(Square* space) {
 }
 
 void Square::setEmpty() {
-  color = NONE;
+  color = PLAY_NONE;
   piece = EMPTY;
 }
 
@@ -57,10 +57,10 @@ void Board::drawBoard(int t) {
 
 void Board::drawSerialBoard() {
   // Add an empty line
-  Serial << endl << "      = Game Status =" << endl << endl;
+  Serial1 << endl << "      = Game Status =" << endl << endl;
   // Loop by row and columns
   for (int i = 7; i >= 0; i--) {
-    Serial << " " << i + 1 << "| ";
+    Serial1 << " " << i + 1 << "| ";
     for (int j = 0; j < 8; j++) {
       // Set the ChessPieces in the starting position and
       // draw the squares
@@ -68,29 +68,29 @@ void Board::drawSerialBoard() {
       ChessColor c = square[j][i].getPieceColor();
       switch (p)
       {
-      case KING: (c == WHITE) ? Serial << "[K]" : Serial << "[k]";
+      case KING: (c == PLAY_WHITE) ? Serial1 << "[K]" : Serial1 << "[k]";
         break;
-      case QUEEN: (c == WHITE) ? Serial << "]Q]" : Serial << "[q]";
+      case QUEEN: (c == PLAY_WHITE) ? Serial1 << "]Q]" : Serial1 << "[q]";
         break;
-      case BISHOP:(c == WHITE) ? Serial << "[B]" : Serial << "[b]";
+      case BISHOP:(c == PLAY_WHITE) ? Serial1 << "[B]" : Serial1 << "[b]";
         break;
-      case KNIGHT:(c == WHITE) ? Serial << "[H]" : Serial << "[h]";
+      case KNIGHT:(c == PLAY_WHITE) ? Serial1 << "[H]" : Serial1 << "[h]";
         break;
-      case ROOK: (c == WHITE) ? Serial << "[R]" : Serial << "[r]";
+      case ROOK: (c == PLAY_WHITE) ? Serial1 << "[R]" : Serial1 << "[r]";
         break;
-      case PAWN: (c == WHITE) ? Serial << "[P]" : Serial << "[p]";
+      case PAWN: (c == PLAY_WHITE) ? Serial1 << "[P]" : Serial1 << "[p]";
         break;
-      case EMPTY: Serial << "[ ]";
+      case EMPTY: Serial1 << "[ ]";
         break;
-      default: Serial << "???"; // Should never happen
+      default: Serial1 << "???"; // Should never happen
         break;
       } // Case piece
     } // print row
-    Serial << endl;
+    Serial1 << endl;
   } // print col
   // Last row
-  Serial << "    ________________________" << endl;
-  Serial << "     A  B  C  D  E  F  G  H" << endl;
+  Serial1 << "    ________________________" << endl;
+  Serial1 << "     A  B  C  D  E  F  G  H" << endl;
 }
 
 void Board::drawHtmlBoard() {
@@ -111,7 +111,7 @@ bool Board::doMove() {
 //  bool stop = false;
 //  while (!stop)
 //  {
-//    (turn == WHITE) ? cout << "White's turn" << endl : cout << "Black's turn" << endl;
+//    (turn == PLAY_WHITE) ? cout << "White's turn" << endl : cout << "Black's turn" << endl;
 //    cout << "Type in your move as a single four character string. Use x-coordinates first in each pair." << endl;
 //    cin >> move;
 //    x1 = move[0] - 48;
@@ -133,7 +133,7 @@ bool Board::doMove() {
 //      cout << "That's not your ChessPiece. Try again." << endl;
 //  }
 //  if (getSquare(x2, y2)->getPiece() == KING)
-//    if (getSquare(x1, y1)->getPieceColor() == WHITE)
+//    if (getSquare(x1, y1)->getPieceColor() == PLAY_WHITE)
 //    {
 ////      cout << "WHITE WINS" << endl;
 //      return false;
@@ -147,9 +147,9 @@ bool Board::doMove() {
 //
 //
 //  if (turn == BLACK)
-//    turn = WHITE;
+//    turn = PLAY_WHITE;
 //  else
-//    turn = BLACK;
+//    turn = PLAY_BLACK;
 
   return true;
 
@@ -157,36 +157,36 @@ bool Board::doMove() {
 
 void Board::setBoard() {
   // Place the first row pieces in their position for white side
-  square[0][0].setPieceAndColor(ROOK, WHITE);
-  square[1][0].setPieceAndColor(KNIGHT, WHITE);
-  square[2][0].setPieceAndColor(BISHOP, WHITE);
-  square[3][0].setPieceAndColor(QUEEN, WHITE);
-  square[4][0].setPieceAndColor(KING, WHITE);
-  square[5][0].setPieceAndColor(BISHOP, WHITE);
-  square[6][0].setPieceAndColor(KNIGHT, WHITE);
-  square[7][0].setPieceAndColor(ROOK, WHITE);
+  square[0][0].setPieceAndColor(ROOK, PLAY_WHITE);
+  square[1][0].setPieceAndColor(KNIGHT, PLAY_WHITE);
+  square[2][0].setPieceAndColor(BISHOP, PLAY_WHITE);
+  square[3][0].setPieceAndColor(QUEEN, PLAY_WHITE);
+  square[4][0].setPieceAndColor(KING, PLAY_WHITE);
+  square[5][0].setPieceAndColor(BISHOP, PLAY_WHITE);
+  square[6][0].setPieceAndColor(KNIGHT, PLAY_WHITE);
+  square[7][0].setPieceAndColor(ROOK, PLAY_WHITE);
 
   // Place the first row pieces in their position for black side
-  square[0][7].setPieceAndColor(ROOK, BLACK);
-  square[1][7].setPieceAndColor(KNIGHT, BLACK);
-  square[2][7].setPieceAndColor(BISHOP, BLACK);
-  square[3][7].setPieceAndColor(QUEEN, BLACK);
-  square[4][7].setPieceAndColor(KING, BLACK);
-  square[5][7].setPieceAndColor(BISHOP, BLACK);
-  square[6][7].setPieceAndColor(KNIGHT, BLACK);
-  square[7][7].setPieceAndColor(ROOK, BLACK);
+  square[0][7].setPieceAndColor(ROOK, PLAY_BLACK);
+  square[1][7].setPieceAndColor(KNIGHT, PLAY_BLACK);
+  square[2][7].setPieceAndColor(BISHOP, PLAY_BLACK);
+  square[3][7].setPieceAndColor(QUEEN, PLAY_BLACK);
+  square[4][7].setPieceAndColor(KING, PLAY_BLACK);
+  square[5][7].setPieceAndColor(BISHOP, PLAY_BLACK);
+  square[6][7].setPieceAndColor(KNIGHT, PLAY_BLACK);
+  square[7][7].setPieceAndColor(ROOK, PLAY_BLACK);
 
   // Place the Pawn rows
   for (int i = 0; i < 8; i++) {
-    square[i][1].setPieceAndColor(PAWN, WHITE);
-    square[i][6].setPieceAndColor(PAWN, BLACK);
+    square[i][1].setPieceAndColor(PAWN, PLAY_WHITE);
+    square[i][6].setPieceAndColor(PAWN, PLAY_BLACK);
 
   }
 
   // Create the empty squares
   for (int i = 2; i < 6; i++) {
     for (int j = 0; j < 8; j++) {
-      square[j][i].setPieceAndColor(EMPTY, NONE);
+      square[j][i].setPieceAndColor(EMPTY, PLAY_NONE);
     }
   }
 
@@ -241,7 +241,7 @@ int Board::moveQueen(Square* thisQueen, Square* thatSpace) {
       yIncrement = (thatY - queenY) / (abs(thatY - queenY));
       
       for (int i = queenY + yIncrement; i != thatY; i += yIncrement) {
-        if (square[thatX][i].getPieceColor() != NONE) {
+        if (square[thatX][i].getPieceColor() != PLAY_NONE) {
           return MOVE_QUEEN_INVALID;
         }
       }
@@ -250,7 +250,7 @@ int Board::moveQueen(Square* thisQueen, Square* thatSpace) {
       if (queenY == thatY) {
         xIncrement = (thatX - queenX) / (abs(thatX - queenX));
         for (int i = queenX + xIncrement; i != thatX; i += xIncrement) {
-          if (square[i][thatY].getPieceColor() != NONE) {
+          if (square[i][thatY].getPieceColor() != PLAY_NONE) {
             return MOVE_QUEEN_INVALID;
           }
         }
@@ -261,7 +261,7 @@ int Board::moveQueen(Square* thisQueen, Square* thatSpace) {
           yIncrement = (thatY - queenY) / (abs(thatY - queenY));
 
           for (int i = 1; i < abs(queenX - thatX); i++) {
-            if (square[queenX + xIncrement*i][queenY + yIncrement*i].getPieceColor() != NONE) {
+            if (square[queenX + xIncrement*i][queenY + yIncrement*i].getPieceColor() != PLAY_NONE) {
               return MOVE_QUEEN_INVALID;
             } // Wrong move
           } // Loop on destination position
@@ -298,7 +298,7 @@ int Board::moveBishop(Square* thisBishop, Square* thatSpace) { //there might be 
     int yIncrement = (thatY - bishopY) / (abs(thatY - bishopY));
 
     for (int i = 1; i < abs(bishopX - thatX); i++) {
-      if (square[bishopX + xIncrement*i][bishopY + yIncrement*i].getPieceColor() != NONE) {
+      if (square[bishopX + xIncrement*i][bishopY + yIncrement*i].getPieceColor() != PLAY_NONE) {
         return MOVE_BISHOP_INVALID;
       } // Wrong move
     }
@@ -347,7 +347,7 @@ int Board::moveRook(Square* thisRook, Square* thatSpace) {
     if (rookX == thatX) {
       int yIncrement = (thatY - rookY) / (abs(thatY - rookY));
       for (int i = rookY + yIncrement; i != thatY; i += yIncrement) {
-        if (square[thatX][i].getPieceColor() != NONE) {
+        if (square[thatX][i].getPieceColor() != PLAY_NONE) {
           return MOVE_ROOK_INVALID;
         } // Wrong move
       } // Loop on the possible landing squares
@@ -356,7 +356,7 @@ int Board::moveRook(Square* thisRook, Square* thatSpace) {
       if (rookY == thatY) {
         int xIncrement = (thatX - rookX) / (abs(thatX - rookX));
         for (int i = rookX + xIncrement; i != thatX; i += xIncrement) {
-          if (square[i][thatY].getPieceColor() != NONE) {
+          if (square[i][thatY].getPieceColor() != PLAY_NONE) {
             return MOVE_ROOK_INVALID;
           } // Wrong move
         } // Loop on pthe possible landing squares
@@ -382,14 +382,14 @@ int Board::movePawn(Square* thisPawn, Square* thatSpace) {
   int thatX = thatSpace->getX();
   int thatY = thatSpace->getY();
 
-  if (thisPawn->getPieceColor() == WHITE) {
-    if (pawnX == thatX && thatY == pawnY + 1 && thatSpace->getPieceColor() == NONE) {
+  if (thisPawn->getPieceColor() == PLAY_WHITE) {
+    if (pawnX == thatX && thatY == pawnY + 1 && thatSpace->getPieceColor() == PLAY_NONE) {
       thatSpace->setSpace(thisPawn);
       thisPawn->setEmpty();
       return MOVE_OK;
     } // Correct move
     else {
-      if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY + 1 == thatY  && thatSpace->getPieceColor() == BLACK) {
+      if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY + 1 == thatY  && thatSpace->getPieceColor() == PLAY_BLACK) {
         thatSpace->setSpace(thisPawn);
         thisPawn->setEmpty();
         return MOVE_OK;
@@ -400,14 +400,14 @@ int Board::movePawn(Square* thisPawn, Square* thatSpace) {
     } // Pawn eats 
   } // Case white player
   else {
-    if (thisPawn->getPieceColor() == BLACK) {
-      if (pawnX == thatX && thatY == pawnY - 1 && thatSpace->getPieceColor() == NONE) {
+    if (thisPawn->getPieceColor() == PLAY_BLACK) {
+      if (pawnX == thatX && thatY == pawnY - 1 && thatSpace->getPieceColor() == PLAY_NONE) {
         thatSpace->setSpace(thisPawn);
         thisPawn->setEmpty();
       return MOVE_OK;
       } // Correct move
       else {
-        if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY - 1 == thatY  && thatSpace->getPieceColor() == WHITE) {
+        if ((pawnX + 1 == thatX || pawnX - 1 == thatX) && pawnY - 1 == thatY  && thatSpace->getPieceColor() == PLAY_WHITE) {
           thatSpace->setSpace(thisPawn);
           thisPawn->setEmpty();
           return MOVE_OK;
@@ -435,7 +435,7 @@ int Board::makeMove(int x1, int y1, int x2, int y2) {
   Square* dest = getSquare(x2, y2);
 
   // Check if there is a piece of the same color on the destination coordinates
-  if (src->getPieceColor() == dest->getPieceColor() && dest->getPieceColor() != NONE) {
+  if (src->getPieceColor() == dest->getPieceColor() && dest->getPieceColor() != PLAY_NONE) {
     return MOVE_SAME_COLOR_PIECE;
   }
 

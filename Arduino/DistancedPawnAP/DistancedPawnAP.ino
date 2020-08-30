@@ -2,12 +2,13 @@
   \file DistancedPawn.ino
   \brief Main application for "The Distanced Pawn" project, AP module
 
-  This software is developed to run on the Arduino MKR1010 connected to a second similad micro controller.
-  The AP implement a web server to whch the second chess player (the remote opponent) connects 
-  implementing a web client.
+  This software is developed to run on the Arduino MKR1010 connected to 
+  a second similad micro controller.
+  The AP implement a web server to whch the second chess player 
+  (the remote opponent) connects implementing a web client.
 
   \author Enrico Miglino <balearidcynamics@gmail.com>
-  \version 1.0 build 6
+  \version 1.0 build 7
  */
 
 #include <SPI.h>
